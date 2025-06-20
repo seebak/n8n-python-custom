@@ -1,37 +1,19 @@
-version: '3.8'
+version: "3.8"
 
 services:
   n8n:
-    image: n8nio/n8n:latest
+    build: .
     ports:
       - "5678:5678"
+    volumes:
+      - ./data:/home/node/.n8n
+      - ./scripts:/data/scripts
+      - ./output:/data/chart_output
     environment:
       - N8N_BASIC_AUTH_ACTIVE=true
       - N8N_BASIC_AUTH_USER=admin
-      - N8N_BASIC_AUTH_PASSWORD=${N8N_PASSWORD:-defaultpassword}
-      - N8N_FUNCTION_ALLOW_EXTERNAL=child_process,fs,os
-      - N8N_SECURE_COOKIE=false
-    volumes:
-      - n8n_data:/home/node/.n8n
-      - python_scripts:/tmp/python_scripts
-    restart: unless-stopped
-
-  python-runner:
-    image: python:3.11-slim
-    volumes:
-      - python_scripts:/app/scripts
-      - ./requirements.txt:/app/requirements.txt
-    working_dir: /app
-    command: >
-      sh -c "
-      pip install -r requirements.txt &&
-      tail -f /dev/null
-      "
-    environment:
-      - MPLBACKEND=Agg
-      - PYTHONUNBUFFERED=1
-    restart: unless-stopped
-
-volumes:
-  n8n_data:
-  python_scripts:
+      - N8N_BASIC_AUTH_PASSWORD=admin
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - NODE_ENV=production
+    restart: always
