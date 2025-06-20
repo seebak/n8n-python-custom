@@ -1,22 +1,39 @@
 version: '3.8'
+
 services:
   n8n:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: n8nio/n8n:latest
+    ports:
+      - "5678:5678"
     environment:
       - N8N_BASIC_AUTH_ACTIVE=true
       - N8N_BASIC_AUTH_USER=admin
-      - N8N_BASIC_AUTH_PASSWORD=${N8N_PASSWORD}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_PASSWORD:-defaultpassword}
       - N8N_FUNCTION_ALLOW_EXTERNAL=child_process,fs,os
-      - MPLBACKEND=Agg
       - N8N_SECURE_COOKIE=false
-    ports:
-      - "5678:5678"
     volumes:
       - n8n_data:/home/node/.n8n
-      - ./plots:/tmp/plots  # For saving matplotlib plots
+      - ./scripts:/home/node/scripts
+    depends_on:
+      - python-service
     restart: unless-stopped
+
+  python-service:
+    image: python:3.11-slim
+    volumes:
+      - ./scripts:/app/scripts
+      - ./requirements.txt:/app/requirements.txt
+    working_dir: /app
+    command: >
+      sh -c "
+      pip install -r requirements.txt &&
+      python -m http.server 8000
+      "
+    ports:
+      - "8000:8000"
+    environment:
+      - MPLBACKEND=Agg
+      - PYTHONUNBUFFERED=1
 
 volumes:
   n8n_data:
