@@ -1,50 +1,19 @@
-FROM python:3.11-alpine
+# Use official n8n image as base
+FROM n8nio/n8n:latest
 
-# Install Node.js and npm
-RUN apk add --no-cache nodejs npm
+# Install Python and pip
+USER root
 
-# Install system dependencies for Python libraries
-RUN apk add --no-cache \
-    gcc \
-    musl-dev \
-    linux-headers \
-    freetype-dev \
-    libpng-dev \
-    jpeg-dev \
-    zlib-dev \
-    openblas-dev \
-    lapack-dev
+RUN apt-get update && \
+    apt-get install -y python3 python3-pip && \
+    pip3 install --no-cache-dir matplotlib pandas
 
-# Install Python libraries
-RUN pip install --no-cache-dir \
-    matplotlib \
-    numpy \
-    pandas \
-    scipy \
-    seaborn \
-    plotly \
-    requests \
-    beautifulsoup4 \
-    openpyxl \
-    pillow \
-    lxml \
-    python-dateutil \
-    pytz \
-    scikit-learn
+# Optional: Set a working directory for Python scripts
+RUN mkdir -p /data/scripts && \
+    chown -R node:node /data/scripts
 
-# Install n8n
-RUN npm install -g n8n
-
-# Set environment variables
-ENV MPLBACKEND=Agg
-ENV PYTHONUNBUFFERED=1
-
-# Create user
-RUN addgroup -g 1000 node && \
-    adduser -u 1000 -G node -s /bin/sh -D node
-
+# Switch back to non-root user
 USER node
-WORKDIR /home/node
 
+# Expose port
 EXPOSE 5678
-CMD ["n8n"]
