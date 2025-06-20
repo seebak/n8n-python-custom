@@ -2,7 +2,8 @@ version: '3.8'
 
 services:
   n8n:
-    image: n8nio/n8n:latest
+    build:
+      context: .
     ports:
       - "5678:5678"
     environment:
@@ -13,8 +14,8 @@ services:
       - N8N_BASIC_AUTH_USER=admin
       - N8N_BASIC_AUTH_PASSWORD=admin123
     volumes:
+      - ./data:/mnt/data
       - n8n-data:/home/node/.n8n
-      - ./data:/mnt/data  # LOCAL folder named "data" mapped to /mnt/data inside container
 
 volumes:
   n8n-data:
