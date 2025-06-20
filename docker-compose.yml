@@ -1,28 +1,22 @@
 version: '3.8'
-
 services:
   n8n:
-    image: n8nio/n8n:latest
-    ports:
-      - "5678:5678"
+    build:
+      context: .
+      dockerfile: Dockerfile
     environment:
-      - N8N_PORT=5678
-      - N8N_HOST=n8n2.caseebak.com
-      - WEBHOOK_URL=https://n8n2.caseebak.com
       - N8N_BASIC_AUTH_ACTIVE=true
       - N8N_BASIC_AUTH_USER=admin
-      - N8N_BASIC_AUTH_PASSWORD=admin123
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_PASSWORD}
+      - N8N_FUNCTION_ALLOW_EXTERNAL=child_process,fs,os
+      - MPLBACKEND=Agg
+      - N8N_SECURE_COOKIE=false
+    ports:
+      - "5678:5678"
     volumes:
-      - n8n-data:/home/node/.n8n
-      - shared-data:/mnt/data
-
-  python-runner:
-    image: python:3.12-alpine
-    volumes:
-      - shared-data:/mnt/data
-    command: >
-      sh -c "pip install matplotlib && tail -f /dev/null" # Keeps container alive
+      - n8n_data:/home/node/.n8n
+      - ./plots:/tmp/plots  # For saving matplotlib plots
+    restart: unless-stopped
 
 volumes:
-  n8n-data:
-  shared-data:
+  n8n_data:
